@@ -49,4 +49,5 @@ Return ONLY the corrected text, nothing else.
     // History
     static let appSupportDirectoryName = "Voice2Text"
     static let transcriptionHistoryFileName = "transcriptions.jsonl"
+    static let debugLogFileName = "debug.log"
 }

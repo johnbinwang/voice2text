@@ -13,6 +13,7 @@ class AppSettings: ObservableObject {
         static let llmApiBaseURL = "llmApiBaseURL"
         static let llmApiKey = "llmApiKey"
         static let llmModel = "llmModel"
+        static let debugLoggingEnabled = "debugLoggingEnabled"
     }
 
     // Language
@@ -47,15 +48,30 @@ class AppSettings: ObservableObject {
         }
     }
 
-    private init() {
-        // Load language (default to zh-CN)
-        self.selectedLanguage = defaults.string(forKey: Keys.selectedLanguage) ?? Constants.defaultLanguage
+    @Published var debugLoggingEnabled: Bool {
+        didSet {
+            defaults.set(debugLoggingEnabled, forKey: Keys.debugLoggingEnabled)
+        }
+    }
 
-        // Load LLM settings
+    private init() {
+        self.selectedLanguage = defaults.string(forKey: Keys.selectedLanguage) ?? Constants.defaultLanguage
         self.llmEnabled = defaults.bool(forKey: Keys.llmEnabled)
         self.llmApiBaseURL = defaults.string(forKey: Keys.llmApiBaseURL) ?? "https://api.openai.com/v1"
         self.llmApiKey = defaults.string(forKey: Keys.llmApiKey) ?? ""
         self.llmModel = defaults.string(forKey: Keys.llmModel) ?? "gpt-4"
+
+        let launchArguments = ProcessInfo.processInfo.arguments
+        let environment = ProcessInfo.processInfo.environment
+        let defaultsDebugLogging = defaults.bool(forKey: Keys.debugLoggingEnabled)
+
+        if launchArguments.contains("--debug-logging") {
+            self.debugLoggingEnabled = true
+        } else if let debugLoggingEnvironmentValue = environment["VOICE2TEXT_DEBUG_LOGGING"] {
+            self.debugLoggingEnabled = ["1", "true", "yes", "on"].contains(debugLoggingEnvironmentValue.lowercased())
+        } else {
+            self.debugLoggingEnabled = defaultsDebugLogging
+        }
     }
 
     var isLLMConfigured: Bool {

@@ -1,4 +1,4 @@
-.PHONY: build run install clean test rebuild
+.PHONY: build run run-debug install clean test rebuild
 
 APP_NAME = Voice2Text
 BUNDLE_ID = com.voice2text.app
@@ -28,6 +28,13 @@ run:
 	fi
 	@echo "Running existing $(APP_NAME) app bundle..."
 	@open $(APP_BUNDLE)
+
+run-debug:
+	@if [ ! -d "$(APP_BUNDLE)" ]; then \
+		$(MAKE) build; \
+	fi
+	@echo "Running $(APP_NAME) app bundle with debug logging enabled..."
+	@open "$(APP_BUNDLE)" --args --debug-logging
 
 install: build
 	@echo "Installing $(APP_NAME) to /Applications..."

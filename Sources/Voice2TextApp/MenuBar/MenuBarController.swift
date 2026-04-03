@@ -59,6 +59,17 @@ class MenuBarController {
 
         menu.addItem(NSMenuItem.separator())
 
+        let debugLoggingItem = NSMenuItem(title: "Debug Logging", action: #selector(toggleDebugLogging(_:)), keyEquivalent: "")
+        debugLoggingItem.target = self
+        debugLoggingItem.state = AppSettings.shared.debugLoggingEnabled ? .on : .off
+        menu.addItem(debugLoggingItem)
+
+        let revealLogsItem = NSMenuItem(title: "Reveal Debug Log", action: #selector(revealDebugLog(_:)), keyEquivalent: "")
+        revealLogsItem.target = self
+        menu.addItem(revealLogsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         // Quit
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit(_:)), keyEquivalent: "q"))
 
@@ -74,6 +85,27 @@ class MenuBarController {
     @objc private func toggleLLM(_ sender: NSMenuItem) {
         AppSettings.shared.llmEnabled.toggle()
         updateMenu()
+    }
+
+    @objc private func toggleDebugLogging(_ sender: NSMenuItem) {
+        AppSettings.shared.debugLoggingEnabled.toggle()
+        Task {
+            await DebugLogger.shared.log("debug_logging=\(AppSettings.shared.debugLoggingEnabled)")
+        }
+        updateMenu()
+    }
+
+    @objc private func revealDebugLog(_ sender: NSMenuItem) {
+        Task {
+            do {
+                let path = try await DebugLogger.shared.logFilePath()
+                await MainActor.run {
+                    NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
+                }
+            } catch {
+                await DebugLogger.shared.log("reveal_debug_log_failed error=\(error.localizedDescription)")
+            }
+        }
     }
 
     @objc private func openLLMSettings(_ sender: NSMenuItem) {

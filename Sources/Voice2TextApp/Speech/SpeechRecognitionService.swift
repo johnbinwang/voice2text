@@ -11,6 +11,10 @@ class SpeechRecognitionService {
     var onError: ((Error) -> Void)?
 
     func start(language: String) throws {
+        Task {
+            await DebugLogger.shared.log("speech_start language=\(language)")
+        }
+
         // Clean up any previous session first
         stop()
 
@@ -31,6 +35,9 @@ class SpeechRecognitionService {
         recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             Task { @MainActor in
                 if let error = error {
+                    Task {
+                        await DebugLogger.shared.log("speech_error error=\(error.localizedDescription)")
+                    }
                     self?.onError?(error)
                     return
                 }
@@ -40,8 +47,14 @@ class SpeechRecognitionService {
                 let transcription = result.bestTranscription.formattedString
 
                 if result.isFinal {
+                    Task {
+                        await DebugLogger.shared.log("speech_final text=\(transcription)")
+                    }
                     self?.onFinalResult?(transcription)
                 } else {
+                    Task {
+                        await DebugLogger.shared.log("speech_partial text=\(transcription)")
+                    }
                     self?.onPartialResult?(transcription)
                 }
             }
@@ -53,6 +66,9 @@ class SpeechRecognitionService {
     }
 
     func stop() {
+        Task {
+            await DebugLogger.shared.log("speech_stop")
+        }
         recognitionRequest?.endAudio()
         recognitionTask?.finish()
         recognitionTask = nil

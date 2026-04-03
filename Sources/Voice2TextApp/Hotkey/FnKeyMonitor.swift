@@ -57,6 +57,9 @@ class FnKeyMonitor {
 
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            Task {
+                await DebugLogger.shared.log("event_tap_disabled type=\(type.rawValue)")
+            }
             if let eventTap {
                 CGEvent.tapEnable(tap: eventTap, enable: true)
             }
@@ -76,12 +79,18 @@ class FnKeyMonitor {
             // Handle Fn key (Mac built-in keyboard)
             if fnPressed && !isFnPressed {
                 isFnPressed = true
+                Task {
+                    await DebugLogger.shared.log("hotkey_pressed source=fn")
+                }
                 Task { @MainActor in
                     self.onFnPressed?()
                 }
                 return nil
             } else if !fnPressed && isFnPressed {
                 isFnPressed = false
+                Task {
+                    await DebugLogger.shared.log("hotkey_released source=fn")
+                }
                 Task { @MainActor in
                     self.onFnReleased?()
                 }
@@ -92,12 +101,18 @@ class FnKeyMonitor {
             if !isFnPressed {
                 if altPressed && !isAltPressed {
                     isAltPressed = true
+                    Task {
+                        await DebugLogger.shared.log("hotkey_pressed source=alt")
+                    }
                     Task { @MainActor in
                         self.onFnPressed?()
                     }
                     return nil
                 } else if !altPressed && isAltPressed {
                     isAltPressed = false
+                    Task {
+                        await DebugLogger.shared.log("hotkey_released source=alt")
+                    }
                     Task { @MainActor in
                         self.onFnReleased?()
                     }

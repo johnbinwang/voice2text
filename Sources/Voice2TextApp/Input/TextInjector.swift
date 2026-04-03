@@ -7,6 +7,8 @@ class TextInjector {
     func inject(text: String) async {
         guard !text.isEmpty else { return }
 
+        await DebugLogger.shared.log("text_injector_start text=\(text)")
+
         // Save current pasteboard
         let pasteboard = NSPasteboard.general
         let savedContents = pasteboard.pasteboardItems
@@ -30,20 +32,20 @@ class TextInjector {
 
         // Switch to ASCII input source if needed
         if needsInputSourceSwitch {
+            await DebugLogger.shared.log("text_injector_switch_ascii")
             _ = inputSourceManager.switchToASCIIInputSource()
-            // Give the input source switch time to take effect
-            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+            try? await Task.sleep(nanoseconds: 100_000_000)
         }
 
-        // Write text to pasteboard
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
-        // Simulate Cmd+V
+        await DebugLogger.shared.log("text_injector_pasteboard_set")
         await simulatePaste()
+        await DebugLogger.shared.log("text_injector_paste_sent")
 
-        // Give paste time to complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        await DebugLogger.shared.log("text_injector_end")
     }
 
     private func simulatePaste() async {

@@ -6,14 +6,32 @@ import AVFoundation
 class AppPermissions {
     static let shared = AppPermissions()
 
+    struct PermissionStatus {
+        let microphoneGranted: Bool
+        let speechGranted: Bool
+        let accessibilityGranted: Bool
+
+        var allGranted: Bool {
+            microphoneGranted && speechGranted && accessibilityGranted
+        }
+    }
+
     private init() {}
 
-    func checkAllPermissions() async -> Bool {
+    func currentPermissionStatus() async -> PermissionStatus {
         let microphoneGranted = await checkMicrophonePermission()
         let speechGranted = await checkSpeechRecognitionPermission()
         let accessibilityGranted = checkAccessibilityPermission(prompt: false)
 
-        return microphoneGranted && speechGranted && accessibilityGranted
+        return PermissionStatus(
+            microphoneGranted: microphoneGranted,
+            speechGranted: speechGranted,
+            accessibilityGranted: accessibilityGranted
+        )
+    }
+
+    func checkAllPermissions() async -> Bool {
+        await currentPermissionStatus().allGranted
     }
 
     func checkMicrophonePermission() async -> Bool {
