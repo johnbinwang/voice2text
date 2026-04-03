@@ -1,5 +1,7 @@
 # Voice2Text
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 A macOS 14+ menu-bar voice input app built with Swift and Swift Package Manager.
 
 Voice2Text lets you hold a hotkey to record, release to transcribe, and automatically inject the recognized text into the currently focused input field. It is designed for fast dictation, Chinese-first usage, and mixed-language speech input.
