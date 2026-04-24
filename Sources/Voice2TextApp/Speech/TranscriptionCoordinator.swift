@@ -123,8 +123,9 @@ class TranscriptionCoordinator {
 
     private func processTranscription(originalTranscription: String, sessionID: UUID) async {
         defer {
-            if activeSessionID == sessionID {
-                isProcessing = false
+            isProcessing = false
+            Task {
+                await DebugLogger.shared.log("process_end session=\(sessionID.uuidString)")
             }
         }
 

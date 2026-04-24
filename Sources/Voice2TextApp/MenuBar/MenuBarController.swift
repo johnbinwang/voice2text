@@ -71,7 +71,9 @@ class MenuBarController {
         menu.addItem(NSMenuItem.separator())
 
         // Quit
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit(_:)), keyEquivalent: "q"))
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(quit(_:)), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
 
         statusItem?.menu = menu
     }

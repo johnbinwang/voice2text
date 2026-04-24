@@ -9,26 +9,14 @@ class TextInjector {
 
         await DebugLogger.shared.log("text_injector_start text=\(text)")
 
-        // Save current pasteboard
+        // Save only plain text. Restoring full NSPasteboardItem objects can block on
+        // promised data from other apps, which would freeze the main actor.
         let pasteboard = NSPasteboard.general
-        let savedContents = pasteboard.pasteboardItems
+        let savedString = pasteboard.string(forType: .string)
 
         // Save current input source
         let currentInputSource = inputSourceManager.getCurrentInputSource()
         let needsInputSourceSwitch = currentInputSource.map { inputSourceManager.isCJKInputSource($0) } ?? false
-
-        defer {
-            // Restore input source
-            if needsInputSourceSwitch, let source = currentInputSource {
-                inputSourceManager.switchToInputSource(source)
-            }
-
-            // Restore pasteboard
-            pasteboard.clearContents()
-            if let items = savedContents {
-                pasteboard.writeObjects(items)
-            }
-        }
 
         // Switch to ASCII input source if needed
         if needsInputSourceSwitch {
@@ -46,6 +34,19 @@ class TextInjector {
 
         try? await Task.sleep(nanoseconds: 100_000_000)
         await DebugLogger.shared.log("text_injector_end")
+
+        if needsInputSourceSwitch, let source = currentInputSource {
+            await DebugLogger.shared.log("text_injector_restore_input_source_begin")
+            inputSourceManager.switchToInputSource(source)
+            await DebugLogger.shared.log("text_injector_restore_input_source_end")
+        }
+
+        await DebugLogger.shared.log("text_injector_restore_pasteboard_begin")
+        pasteboard.clearContents()
+        if let savedString {
+            pasteboard.setString(savedString, forType: .string)
+        }
+        await DebugLogger.shared.log("text_injector_restore_pasteboard_end")
     }
 
     private func simulatePaste() async {
